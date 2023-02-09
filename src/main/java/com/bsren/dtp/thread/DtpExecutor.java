@@ -3,6 +3,7 @@ package com.bsren.dtp.thread;
 import com.bsren.dtp.dto.NotifyItem;
 import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.reject.RejectHandlerGetter;
+import com.bsren.dtp.runnable.DtpRunnable;
 import com.bsren.dtp.support.DtpLifecycleSupport;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
+//TODO 是不是应该有一个总超时时间
 @Slf4j
 public class DtpExecutor extends DtpLifecycleSupport {
 
@@ -92,10 +94,67 @@ public class DtpExecutor extends DtpLifecycleSupport {
     @Override
     public void execute(Runnable command) {
         String taskName = null;
+        String groupName = null;
+        if(command instanceof DtpRunnable){
+            taskName = ((DtpRunnable)command).getName();
+            groupName = ((DtpRunnable)command).getName();
+        }
+        //todo taskWrappers
+        if(runTimeout>0 || queueTimeout>0){
+            command = new DtpRunnable(command,groupName,taskName);
+        }
+        super.execute(command);
     }
 
     @Override
     protected void initialize(DtpProperties properties) {
 
     }
+
+
+    @Override
+    protected void beforeExecute(Thread t, Runnable r) {
+        if(!(r instanceof DtpRunnable)){
+            super.beforeExecute(t,r);
+            return;
+        }
+        DtpRunnable runnable = (DtpRunnable) r;
+        Long submitTime = runnable.getSubmitTime();
+        long curTime = System.currentTimeMillis();
+        if(runTimeout>0){
+            runnable.setStartTime(curTime);
+        }
+        if(queueTimeout>0){
+            long waitTime = curTime-runnable.getSubmitTime();
+            if(waitTime>queueTimeout){
+                queueTimeoutCount.increment();
+                //TODO 触发警报
+                log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName());
+            }
+        }
+        super.beforeExecute(t,r);
+    }
+
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+        if(queueTimeout>0){
+            DtpRunnable runnable = (DtpRunnable) r;
+            long runTime = System.currentTimeMillis()-runnable.getStartTime();
+            if(runTime>runTimeout){
+                runTimeoutCount.increment();
+                //TODO 触发警报
+                log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName());
+            }
+        }
+        super.afterExecute(r, t);
+    }
+
+    public void incRejectCount(int count) {
+        rejectCount.add(count);
+    }
+
+    public long getRejectCount() {
+        return rejectCount.sum();
+    }
+
 }

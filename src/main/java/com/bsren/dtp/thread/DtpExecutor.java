@@ -5,6 +5,8 @@ import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.reject.RejectHandlerGetter;
 import com.bsren.dtp.runnable.DtpRunnable;
 import com.bsren.dtp.support.DtpLifecycleSupport;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -58,6 +60,22 @@ public class DtpExecutor extends DtpLifecycleSupport {
      * 拒绝的次数
      */
     private final LongAdder rejectCount = new LongAdder();
+
+    public void setRunTimeout(long runTimeout) {
+        this.runTimeout = runTimeout;
+    }
+
+    public void setQueueTimeout(long queueTimeout) {
+        this.queueTimeout = queueTimeout;
+    }
+
+    public String getThreadPoolAliasName() {
+        return threadPoolAliasName;
+    }
+
+    public void setThreadPoolAliasName(String threadPoolAliasName) {
+        this.threadPoolAliasName = threadPoolAliasName;
+    }
 
     /**
      * TODO
@@ -129,7 +147,8 @@ public class DtpExecutor extends DtpLifecycleSupport {
             if(waitTime>queueTimeout){
                 queueTimeoutCount.increment();
                 //TODO 触发警报
-                log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName());
+                log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName()+
+                        ",timeout "+waitTime+"ms");
             }
         }
         super.beforeExecute(t,r);
@@ -143,7 +162,8 @@ public class DtpExecutor extends DtpLifecycleSupport {
             if(runTime>runTimeout){
                 runTimeoutCount.increment();
                 //TODO 触发警报
-                log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName());
+                log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName()+
+                        ",timeout "+runTime+"ms");
             }
         }
         super.afterExecute(r, t);

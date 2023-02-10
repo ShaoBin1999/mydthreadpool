@@ -5,6 +5,7 @@ import java.util.concurrent.*;
 
 import com.bsren.dtp.holder.ApplicationContextHolder;
 import com.bsren.dtp.properties.DtpProperties;
+import com.bsren.dtp.thread.DtpExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;

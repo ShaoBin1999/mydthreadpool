@@ -1,5 +1,8 @@
 package com.bsren.dtp.em;
 
+import lombok.Getter;
+
+@Getter
 public enum NotifyItemEnum {
 
     /**
@@ -11,7 +14,7 @@ public enum NotifyItemEnum {
      * threadPool notify
      * live = active / maximumPoolSize
      */
-    STATUS("status"),
+    LIVE("live"),
 
     /**
      * capacity threshold notify

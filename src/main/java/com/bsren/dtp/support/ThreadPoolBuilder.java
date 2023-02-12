@@ -1,12 +1,11 @@
 package com.bsren.dtp.support;
 
-import cn.hutool.core.thread.NamedThreadFactory;
 import com.bsren.dtp.constant.DynamicTpConst;
 import com.bsren.dtp.dto.NotifyItem;
 import com.bsren.dtp.em.QueueTypeEnum;
 import com.bsren.dtp.exception.DtpException;
 import org.apache.commons.lang3.StringUtils;
-
+import com.bsren.dtp.thread.NamedThreadFactory;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -31,8 +30,7 @@ public class ThreadPoolBuilder {
 
     private int maxFreeMemory = 256;
 
-//    private ThreadFactory threadFactory = new NamedThreadFactory("dtp");
-
+    private ThreadFactory threadFactory = new NamedThreadFactory("dtp");
 
     private RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.AbortPolicy();
 
@@ -104,10 +102,10 @@ public class ThreadPoolBuilder {
     }
 
     public ThreadPoolBuilder workQueue(String queueName, Integer capacity, Boolean fair, Integer maxFreeMemory) {
-//        if (StringUtils.isNotBlank(queueName)) {
-//            workQueue = QueueTypeEnum.buildLbq(queueName, capacity != null ? capacity : this.queueCapacity,
-//                    fair != null && fair, maxFreeMemory != null ? maxFreeMemory : this.maxFreeMemory);
-//        }
+        if (StringUtils.isNotBlank(queueName)) {
+            workQueue = QueueTypeEnum.buildBlockingQueue(queueName, capacity != null ? capacity : this.queueCapacity,
+                    fair != null && fair, maxFreeMemory != null ? maxFreeMemory : this.maxFreeMemory);
+        }
         return this;
     }
 }

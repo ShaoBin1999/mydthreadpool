@@ -4,8 +4,17 @@ import com.bsren.dtp.constant.DynamicTpConst;
 import com.bsren.dtp.dto.NotifyItem;
 import com.bsren.dtp.em.QueueTypeEnum;
 import com.bsren.dtp.exception.DtpException;
+import com.bsren.dtp.queue.TaskQueue;
+import com.bsren.dtp.reject.RejectHandlerGetter;
+import com.bsren.dtp.thread.DtpExecutor;
+import com.bsren.dtp.thread.EagerDtpExecutor;
+import com.bsren.dtp.thread.OrderedDtpExecutor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.bsren.dtp.thread.NamedThreadFactory;
+import org.springframework.util.Assert;
+import com.alibaba.ttl.TtlRunnable;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -107,5 +116,182 @@ public class ThreadPoolBuilder {
                     fair != null && fair, maxFreeMemory != null ? maxFreeMemory : this.maxFreeMemory);
         }
         return this;
+    }
+
+    public ThreadPoolBuilder workQueue(String queueName, Integer capacity, Boolean fair) {
+        if (StringUtils.isNotBlank(queueName)) {
+            workQueue = QueueTypeEnum.buildBlockingQueue(queueName, capacity != null ? capacity : this.queueCapacity,
+                    fair != null && fair, maxFreeMemory);
+        }
+        return this;
+    }
+
+    public ThreadPoolBuilder queueCapacity(int queueCapacity) {
+        this.queueCapacity = queueCapacity;
+        return this;
+    }
+
+    public ThreadPoolBuilder maxFreeMemory(int maxFreeMemory) {
+        this.maxFreeMemory = maxFreeMemory;
+        return this;
+    }
+
+    public ThreadPoolBuilder rejectedExecutionHandler(String rejectedName) {
+        if (StringUtils.isNotBlank(rejectedName)) {
+            rejectedExecutionHandler = RejectHandlerGetter.buildRejectedHandler(rejectedName);
+        }
+        return this;
+    }
+
+    public ThreadPoolBuilder threadFactory(String prefix) {
+        if (StringUtils.isNotBlank(prefix)) {
+            threadFactory = new NamedThreadFactory(prefix);
+        }
+        return this;
+    }
+
+    public ThreadPoolBuilder allowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
+        this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
+        return this;
+    }
+
+    public ThreadPoolBuilder dynamic(boolean dynamic) {
+        this.dynamic = dynamic;
+        return this;
+    }
+
+    public ThreadPoolBuilder awaitTerminationSeconds(int awaitTerminationSeconds) {
+        this.awaitTerminationSeconds = awaitTerminationSeconds;
+        return this;
+    }
+
+    public ThreadPoolBuilder waitForTasksToCompleteOnShutdown(boolean waitForTasksToCompleteOnShutdown) {
+        this.waitForTasksToCompleteOnShutdown = waitForTasksToCompleteOnShutdown;
+        return this;
+    }
+
+    public ThreadPoolBuilder ioIntensive(boolean ioIntensive) {
+        this.ioIntensive = ioIntensive;
+        return this;
+    }
+
+    public ThreadPoolBuilder ordered(boolean ordered) {
+        this.ordered = ordered;
+        return this;
+    }
+
+    public ThreadPoolBuilder preStartAllCoreThreads(boolean preStartAllCoreThreads) {
+        this.preStartAllCoreThreads = preStartAllCoreThreads;
+        return this;
+    }
+
+    public ThreadPoolBuilder runTimeout(long runTimeout) {
+        this.runTimeout = runTimeout;
+        return this;
+    }
+
+    public ThreadPoolBuilder queueTimeout(long queueTimeout) {
+        this.queueTimeout = queueTimeout;
+        return this;
+    }
+
+    public ThreadPoolBuilder notifyItems(List<NotifyItem> notifyItemList) {
+        if (CollectionUtils.isNotEmpty(notifyItemList)) {
+            notifyItems = notifyItemList;
+        }
+        return this;
+    }
+
+    public ThreadPoolExecutor build() {
+        if (dynamic) {
+            return buildDtpExecutor(this);
+        } else {
+            return buildCommonExecutor(this);
+        }
+    }
+
+    public DtpExecutor buildDynamic() {
+        return buildDtpExecutor(this);
+    }
+
+    public ThreadPoolExecutor buildCommon() {
+        return buildCommonExecutor(this);
+    }
+
+    public ExecutorService buildWithTtl() {
+        if (dynamic) {
+            return buildDtpExecutor(this);
+        } else {
+            return TtlExecutors.getTtlExecutorService(buildCommonExecutor(this));
+        }
+    }
+
+    private DtpExecutor buildDtpExecutor(ThreadPoolBuilder builder) {
+        Assert.notNull(builder.threadPoolName, "The thread pool name must not be null.");
+        DtpExecutor dtpExecutor = createInternal(builder);
+        dtpExecutor.setThreadPoolName(builder.threadPoolName);
+        dtpExecutor.allowCoreThreadTimeOut(builder.allowCoreThreadTimeOut);
+        dtpExecutor.setWaitForTasksToCompleteOnShutdown(builder.waitForTasksToCompleteOnShutdown);
+        dtpExecutor.setAwaitTerminationSeconds(builder.awaitTerminationSeconds);
+        dtpExecutor.setPreStartAllCoreThreads(builder.preStartAllCoreThreads);
+        dtpExecutor.setRunTimeout(builder.runTimeout);
+        dtpExecutor.setQueueTimeout(builder.queueTimeout);
+        dtpExecutor.setNotifyItems(builder.notifyItems);
+        return dtpExecutor;
+    }
+
+    private DtpExecutor createInternal(ThreadPoolBuilder builder) {
+        DtpExecutor dtpExecutor;
+        if (ioIntensive) {
+            TaskQueue taskQueue = new TaskQueue(builder.queueCapacity);
+            dtpExecutor = new EagerDtpExecutor(
+                    builder.corePoolSize,
+                    builder.maximumPoolSize,
+                    builder.keepAliveTime,
+                    builder.timeUnit,
+                    taskQueue,
+                    builder.threadFactory,
+                    builder.rejectedExecutionHandler);
+            taskQueue.setExecutor((EagerDtpExecutor) dtpExecutor);
+        } else if (ordered) {
+            dtpExecutor = new OrderedDtpExecutor(
+                    builder.corePoolSize,
+                    builder.maximumPoolSize,
+                    builder.keepAliveTime,
+                    builder.timeUnit,
+                    builder.workQueue,
+                    builder.threadFactory,
+                    builder.rejectedExecutionHandler);
+        } else {
+            dtpExecutor = new DtpExecutor(
+                    builder.corePoolSize,
+                    builder.maximumPoolSize,
+                    builder.keepAliveTime,
+                    builder.timeUnit,
+                    builder.workQueue,
+                    builder.threadFactory,
+                    builder.rejectedExecutionHandler);
+        }
+        return dtpExecutor;
+    }
+
+    /**
+     * Build common threadPoolExecutor, does not manage by DynamicTp framework.
+     *
+     * @param builder the targeted builder
+     * @return the newly created ThreadPoolExecutor instance
+     */
+    private ThreadPoolExecutor buildCommonExecutor(ThreadPoolBuilder builder) {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                builder.corePoolSize,
+                builder.maximumPoolSize,
+                builder.keepAliveTime,
+                builder.timeUnit,
+                builder.workQueue,
+                builder.threadFactory,
+                builder.rejectedExecutionHandler
+        );
+        executor.allowCoreThreadTimeOut(builder.allowCoreThreadTimeOut);
+        return executor;
     }
 }

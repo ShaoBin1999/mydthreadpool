@@ -77,6 +77,36 @@ public class DtpExecutor extends DtpLifecycleSupport {
         this.threadPoolAliasName = threadPoolAliasName;
     }
 
+
+    public void setRejectHandlerName(String rejectHandlerName) {
+        this.rejectHandlerName = rejectHandlerName;
+    }
+
+    public void setNotifyItems(List<NotifyItem> notifyItems) {
+        this.notifyItems = notifyItems;
+    }
+
+    public void setNotifyEnabled(boolean notifyEnabled) {
+        this.notifyEnabled = notifyEnabled;
+    }
+
+    public void setPreStartAllCoreThreads(boolean preStartAllCoreThreads) {
+        this.preStartAllCoreThreads = preStartAllCoreThreads;
+    }
+
+    public String getQueueName() {
+        return getQueue().getClass().getSimpleName();
+    }
+
+    public int getQueueCapacity() {
+        int capacity = getQueue().size() + getQueue().remainingCapacity();
+        return capacity < 0 ? Integer.MAX_VALUE : capacity;
+    }
+
+    public String getRejectHandlerName() {
+        return rejectHandlerName;
+    }
+
     /**
      * TODO
      * Java有很多并发控制机制，比如说以AQS为基础的锁或者以CAS为原理的自旋锁。不了解AQS的朋友可以阅读我之前的AQS源码解析文章。一般来说，CAS适合轻量级的并发操作，也就是并发量并不多，而且等待时间不长的情况，否则就应该使用普通锁，进入阻塞状态，避免CPU空转。
@@ -137,7 +167,6 @@ public class DtpExecutor extends DtpLifecycleSupport {
             return;
         }
         DtpRunnable runnable = (DtpRunnable) r;
-        Long submitTime = runnable.getSubmitTime();
         long curTime = System.currentTimeMillis();
         if(runTimeout>0){
             runnable.setStartTime(curTime);

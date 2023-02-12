@@ -32,6 +32,14 @@ public abstract class DtpLifecycleSupport extends ThreadPoolExecutor implements 
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
     }
 
+    public void setWaitForTasksToCompleteOnShutdown(boolean waitForTasksToCompleteOnShutdown) {
+        this.waitForTasksToCompleteOnShutdown = waitForTasksToCompleteOnShutdown;
+    }
+
+    public void setAwaitTerminationSeconds(int awaitTerminationSeconds) {
+        this.awaitTerminationSeconds = awaitTerminationSeconds;
+    }
+
     public String getThreadPoolName() {
         return threadPoolName;
     }

@@ -202,15 +202,6 @@ public class VariableLinkedBlockingQueue<E> extends AbstractQueue<E> implements
         return true;
     }
 
-    @Override
-    public E take() throws InterruptedException {
-        return null;
-    }
-
-    @Override
-    public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        return null;
-    }
 
     @Override
     public boolean offer(E e) {
@@ -239,12 +230,184 @@ public class VariableLinkedBlockingQueue<E> extends AbstractQueue<E> implements
     }
 
     @Override
+    public E take() throws InterruptedException {
+        E x = null;
+        final ReentrantLock takeLock = this.takeLock;
+        final AtomicInteger count = this.counter;
+        int c = -1;
+        takeLock.lockInterruptibly();
+        try {
+            while (count.get()==0){
+                notEmpty.await();
+            }
+            x = extract();
+            c = count.getAndDecrement();
+            if(c>1){
+                notEmpty.signal();
+            }
+        }finally {
+            takeLock.unlock();
+        }
+        if(c==capacity){
+            signalNotFull();
+        }
+        return x;
+    }
+
+
+    @Override
+    public E poll(long timeout, TimeUnit unit) throws InterruptedException {
+        E x = null;
+        int c = -1;
+        final ReentrantLock takeLock = this.takeLock;
+        final AtomicInteger count = this.counter;
+        long nanos = unit.toNanos(timeout);
+        takeLock.lockInterruptibly();
+        try {
+            while (count.get()==0){
+                if(nanos<0){
+                    return null;
+                }
+                nanos = notEmpty.awaitNanos(nanos);
+            }
+            x = extract();
+            c = count.getAndDecrement();
+            if(c>1){
+                notEmpty.signal();
+            }
+        }finally {
+            takeLock.unlock();
+        }
+        if(c==capacity){
+            signalNotFull();
+        }
+        return x;
+    }
+
+    @Override
     public E poll() {
-        return null;
+        E x = null;
+        int c = -1;
+        final ReentrantLock takeLock = this.takeLock;
+        final AtomicInteger count = this.counter;
+        takeLock.lock();
+        try {
+            if(count.get()==0){
+                return null;
+            }
+            x = extract();
+            c = count.getAndDecrement();
+            if(c>1){
+                notEmpty.signal();
+            }
+        }finally {
+            takeLock.unlock();
+        }
+        if(c==capacity){
+            signalNotFull();
+        }
+        return x;
     }
 
     @Override
     public E peek() {
-        return null;
+        final AtomicInteger count = this.counter;
+        if(count.get()==0){
+            return null;
+        }
+        final ReentrantLock takeLock = this.takeLock;
+        takeLock.lock();
+        try {
+            return count.get()>0?head.next.item:null;
+        }finally {
+            takeLock.unlock();
+        }
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        if(o==null){
+            return false;
+        }
+        boolean removed = false;
+        fullyLock();
+        try {
+            Node<E> trail = head;
+            Node<E> p = head.next;
+            while (p!=null){
+                if(p.item.equals(o)){
+                    removed = true;
+                    break;
+                }
+                trail = p;
+                p = p.next;
+            }
+            if(removed){
+                p.item = null;
+                trail.next = p.next;
+                if(tail==p){
+                    tail = trail;
+                }
+                if(counter.getAndDecrement()==capacity){
+                    notFull.signal();
+                }
+            }
+        }finally {
+            fullyUnlock();
+        }
+        return removed;
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        fullyLock();
+        try {
+            int size = counter.get();
+            if(a.length<size){
+                a = (T[])java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+            }
+            int k = 0;
+            for (Node<E> p = head.next;p!=null;p = p.next){
+                a[k++] = (T) p.item;
+            }
+            if (a.length > k)
+                a[k] = null;
+            return a;
+        }finally {
+            fullyUnlock();
+        }
+    }
+
+    @Override
+    public Object[] toArray() {
+        fullyLock();
+        try {
+            int size = counter.get();
+            Object[] a = new Object[size];
+            int k = 0;
+            for (Node<E> p = head.next;p!=null;p=p.next){
+                a[k++] = p.item;
+            }
+            return a;
+        }finally {
+            fullyUnlock();
+        }
+    }
+
+    @Override
+    public void clear() {
+        fullyLock();
+        try {
+            for (Node<E> p, h = head; (p = h.next) != null; h = p) {
+                h.next = h;
+                p.item = null;
+            }
+            head = tail;
+            // assert head.item == null && head.next == null;
+            if (counter.getAndSet(0) == capacity)
+                notFull.signal();
+        } finally {
+            fullyUnlock();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.bsren.dtp.support;
 
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.bsren.dtp.constant.DynamicTpConst;
 import com.bsren.dtp.dto.NotifyItem;
 import com.bsren.dtp.em.QueueTypeEnum;
@@ -8,13 +9,12 @@ import com.bsren.dtp.queue.TaskQueue;
 import com.bsren.dtp.reject.RejectHandlerGetter;
 import com.bsren.dtp.thread.DtpExecutor;
 import com.bsren.dtp.thread.EagerDtpExecutor;
+import com.bsren.dtp.thread.NamedThreadFactory;
 import com.bsren.dtp.thread.OrderedDtpExecutor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import com.bsren.dtp.thread.NamedThreadFactory;
 import org.springframework.util.Assert;
-import com.alibaba.ttl.TtlRunnable;
-import com.alibaba.ttl.threadpool.TtlExecutors;
+
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -63,7 +63,7 @@ public class ThreadPoolBuilder {
 
     private List<NotifyItem> notifyItems = NotifyItem.getAllNotifyItems();
 
-    private ThreadPoolBuilder() { }
+    public ThreadPoolBuilder() { }
 
     public static ThreadPoolBuilder newBuilder() {
         return new ThreadPoolBuilder();
@@ -112,27 +112,41 @@ public class ThreadPoolBuilder {
 
     public ThreadPoolBuilder workQueue(String queueName, Integer capacity, Boolean fair, Integer maxFreeMemory) {
         if (StringUtils.isNotBlank(queueName)) {
-            workQueue = QueueTypeEnum.buildBlockingQueue(queueName, capacity != null ? capacity : this.queueCapacity,
-                    fair != null && fair, maxFreeMemory != null ? maxFreeMemory : this.maxFreeMemory);
+            workQueue = QueueTypeEnum.buildBlockingQueue(
+                    queueName,
+                    capacity != null ? capacity : this.queueCapacity,
+                    fair != null && fair,
+                    maxFreeMemory != null ? maxFreeMemory : this.maxFreeMemory
+            );
         }
         return this;
     }
 
     public ThreadPoolBuilder workQueue(String queueName, Integer capacity, Boolean fair) {
         if (StringUtils.isNotBlank(queueName)) {
-            workQueue = QueueTypeEnum.buildBlockingQueue(queueName, capacity != null ? capacity : this.queueCapacity,
-                    fair != null && fair, maxFreeMemory);
+            workQueue = QueueTypeEnum.buildBlockingQueue(queueName,
+                    capacity != null ? capacity : this.queueCapacity,
+                    fair != null && fair,
+                    maxFreeMemory);
         }
         return this;
     }
 
     public ThreadPoolBuilder queueCapacity(int queueCapacity) {
-        this.queueCapacity = queueCapacity;
+        if(queueCapacity>0){
+            this.queueCapacity = queueCapacity;
+        }else {
+            throw new DtpException("illegal args");
+        }
         return this;
     }
 
     public ThreadPoolBuilder maxFreeMemory(int maxFreeMemory) {
-        this.maxFreeMemory = maxFreeMemory;
+        if(maxFreeMemory>0){
+            this.maxFreeMemory = maxFreeMemory;
+        }else {
+            throw new DtpException("illegal args");
+        }
         return this;
     }
 
@@ -161,7 +175,11 @@ public class ThreadPoolBuilder {
     }
 
     public ThreadPoolBuilder awaitTerminationSeconds(int awaitTerminationSeconds) {
-        this.awaitTerminationSeconds = awaitTerminationSeconds;
+        if(awaitTerminationSeconds>0){
+            this.awaitTerminationSeconds = awaitTerminationSeconds;
+        }else {
+            throw new DtpException("illegal args");
+        }
         return this;
     }
 
@@ -186,12 +204,20 @@ public class ThreadPoolBuilder {
     }
 
     public ThreadPoolBuilder runTimeout(long runTimeout) {
-        this.runTimeout = runTimeout;
+        if(runTimeout>0){
+            this.runTimeout = runTimeout;
+        }else {
+            throw new DtpException("illegal args");
+        }
         return this;
     }
 
     public ThreadPoolBuilder queueTimeout(long queueTimeout) {
-        this.queueTimeout = queueTimeout;
+        if(queueTimeout>0){
+            this.queueTimeout = queueTimeout;
+        }else {
+            throw new DtpException("illegal args");
+        }
         return this;
     }
 
@@ -275,12 +301,6 @@ public class ThreadPoolBuilder {
         return dtpExecutor;
     }
 
-    /**
-     * Build common threadPoolExecutor, does not manage by DynamicTp framework.
-     *
-     * @param builder the targeted builder
-     * @return the newly created ThreadPoolExecutor instance
-     */
     private ThreadPoolExecutor buildCommonExecutor(ThreadPoolBuilder builder) {
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
                 builder.corePoolSize,

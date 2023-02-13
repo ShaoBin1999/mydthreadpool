@@ -5,8 +5,6 @@ import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.reject.RejectHandlerGetter;
 import com.bsren.dtp.runnable.DtpRunnable;
 import com.bsren.dtp.support.DtpLifecycleSupport;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -16,7 +14,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
-//TODO 是不是应该有一个总超时时间
 @Slf4j
 public class DtpExecutor extends DtpLifecycleSupport {
 
@@ -34,6 +31,34 @@ public class DtpExecutor extends DtpLifecycleSupport {
      * 通知项
      */
     private List<NotifyItem> notifyItems;
+
+    public List<NotifyItem> getNotifyItems() {
+        return notifyItems;
+    }
+
+    public boolean isNotifyEnabled() {
+        return notifyEnabled;
+    }
+
+    public boolean isPreStartAllCoreThreads() {
+        return preStartAllCoreThreads;
+    }
+
+    public long getRunTimeout() {
+        return runTimeout;
+    }
+
+    public long getQueueTimeout() {
+        return queueTimeout;
+    }
+
+    public LongAdder getRunTimeoutCount() {
+        return runTimeoutCount;
+    }
+
+    public LongAdder getQueueTimeoutCount() {
+        return queueTimeoutCount;
+    }
 
     /**
      * 是否开启通知
@@ -60,6 +85,37 @@ public class DtpExecutor extends DtpLifecycleSupport {
      * 拒绝的次数
      */
     private final LongAdder rejectCount = new LongAdder();
+
+
+    private int runTimeoutThreshold = 1;
+
+    private int queueTimeoutThreshold = 1;
+
+    private int rejectThreshold = 1;
+
+    public int getQueueTimeoutThreshold() {
+        return queueTimeoutThreshold;
+    }
+
+    public void setQueueTimeoutThreshold(int queueTimeoutThreshold) {
+        this.queueTimeoutThreshold = queueTimeoutThreshold;
+    }
+
+    public int getRunTimeoutThreshold() {
+        return runTimeoutThreshold;
+    }
+
+    public void setRunTimeoutThreshold(int runTimeoutThreshold) {
+        this.runTimeoutThreshold = runTimeoutThreshold;
+    }
+
+    public int getRejectThreshold() {
+        return rejectThreshold;
+    }
+
+    public void setRejectThreshold(int rejectThreshold) {
+        this.rejectThreshold = rejectThreshold;
+    }
 
     public void setRunTimeout(long runTimeout) {
         this.runTimeout = runTimeout;
@@ -175,7 +231,11 @@ public class DtpExecutor extends DtpLifecycleSupport {
             long waitTime = curTime-runnable.getSubmitTime();
             if(waitTime>queueTimeout){
                 queueTimeoutCount.increment();
-                //TODO 触发警报
+                //TODO 按照一种策略，目前是超过就报警，重新计数
+                if(queueTimeoutCount.intValue()>queueTimeoutThreshold){
+                    //TODO 触发警报
+                    queueTimeoutCount.reset();
+                }
                 log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+waitTime+"ms");
             }
@@ -190,7 +250,10 @@ public class DtpExecutor extends DtpLifecycleSupport {
             long runTime = System.currentTimeMillis()-runnable.getStartTime();
             if(runTime>runTimeout){
                 runTimeoutCount.increment();
-                //TODO 触发警报
+                if(runTimeoutCount.intValue()>runTimeoutThreshold){
+                    //TODO 触发警报
+                    runTimeoutCount.reset();
+                }
                 log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+runTime+"ms");
             }

@@ -2,7 +2,7 @@ package com.bsren.dtp.context;
 
 import com.bsren.dtp.dto.ExecutorWrapper;
 import com.bsren.dtp.dto.NotifyItem;
-import com.bsren.dtp.notify.alarm.AlarmInfo;
+import com.bsren.dtp.dto.AlarmInfo;
 
 public class AlarmNotifyCtx extends BaseNotifyCtx{
 

@@ -18,6 +18,46 @@ public class ExecutorWrapper {
 
     private List<NotifyItem> notifyItems;
 
+    public List<NotifyItem> getNotifyItems() {
+        return notifyItems;
+    }
+
+    public void setNotifyItems(List<NotifyItem> notifyItems) {
+        this.notifyItems = notifyItems;
+    }
+
+    public String getThreadPoolName() {
+        return threadPoolName;
+    }
+
+    public void setThreadPoolName(String threadPoolName) {
+        this.threadPoolName = threadPoolName;
+    }
+
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public boolean isNotifyEnabled() {
+        return notifyEnabled;
+    }
+
+    public void setNotifyEnabled(boolean notifyEnabled) {
+        this.notifyEnabled = notifyEnabled;
+    }
+
     private boolean notifyEnabled = true;
 
     public ExecutorWrapper(String threadPoolName, Executor executor) {

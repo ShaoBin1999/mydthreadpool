@@ -1,4 +1,4 @@
-package com.bsren.dtp.notify.alarm;
+package com.bsren.dtp.dto;
 import cn.hutool.core.date.DateUtil;
 import com.bsren.dtp.em.NotifyItemEnum;
 import lombok.Data;

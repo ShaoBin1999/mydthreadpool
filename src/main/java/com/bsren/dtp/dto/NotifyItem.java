@@ -13,14 +13,24 @@ public class NotifyItem {
 
     private String type;
 
+    //超过阈值触发报警
     private int threshold;
 
+    //报警时间间隔
     private int interval = 120;
 
-    private int clusterLimit = 1;
+    private List<String> platforms;
+
+    public List<String> getPlatforms() {
+        return platforms;
+    }
+
+    public void setPlatforms(List<String> platforms) {
+        this.platforms = platforms;
+    }
 
     /**
-     * 添加三个notify
+     * 添加三个基本的notify
      * change, live的警报阈值为70 ,capacity的警报阈值为70
      */
     public static List<NotifyItem> getBaseNotifyItems() {
@@ -45,7 +55,9 @@ public class NotifyItem {
 
 
     /**
+     * TODO 这里阈值建议改成可配置的
      * 添加所有的notify，在change,live,capacity的基础上加上reject,run_timeout,queue_timeout
+     * reject,run_timeout,queue_timeout只要触发一次就会报警
      */
     public static List<NotifyItem> getAllNotifyItems() {
 

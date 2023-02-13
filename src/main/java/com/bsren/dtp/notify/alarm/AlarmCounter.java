@@ -1,19 +1,21 @@
 package com.bsren.dtp.notify.alarm;
 
+import com.bsren.dtp.dto.AlarmInfo;
 import com.bsren.dtp.em.NotifyItemEnum;
-import org.omg.CORBA.UNKNOWN;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import static com.bsren.dtp.constant.DynamicTpConst.UNKNOWN;
 /**
  * 用threadPoolName和通知项名称作为key,指向一个alarmInfo
- * 用作计数警告的次数
  */
 public class AlarmCounter {
 
+    private static final String DEFAULT_COUNT_STR = UNKNOWN + " / " + UNKNOWN;
 
-    private static final Map<String,AlarmInfo> ALARM_INFO_MAP
+    private AlarmCounter() { }
+
+    private static final Map<String, AlarmInfo> ALARM_INFO_MAP
              = new ConcurrentHashMap<>();
 
     public static void init(String threadPoolName,String notifyItemType){

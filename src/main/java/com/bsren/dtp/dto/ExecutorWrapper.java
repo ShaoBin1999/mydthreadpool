@@ -63,13 +63,13 @@ public class ExecutorWrapper {
     public ExecutorWrapper(String threadPoolName, Executor executor) {
         this.threadPoolName = threadPoolName;
         this.executor = executor;
-        this.notifyItems = NotifyItem.getBaseNotifyItems();
+        this.notifyItems = NotifyItem.getSimpleNotifyItems();
     }
 
     public ExecutorWrapper(String threadPoolName, Executor executor, boolean notifyEnabled) {
         this.threadPoolName = threadPoolName;
         this.executor = executor;
-        this.notifyItems = NotifyItem.getBaseNotifyItems();
+        this.notifyItems = NotifyItem.getSimpleNotifyItems();
         this.notifyEnabled = notifyEnabled;
     }
 

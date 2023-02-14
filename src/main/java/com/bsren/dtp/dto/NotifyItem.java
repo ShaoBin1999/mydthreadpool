@@ -1,10 +1,16 @@
 package com.bsren.dtp.dto;
 
 import com.bsren.dtp.em.NotifyItemEnum;
+import com.bsren.dtp.util.StringUtil;
 import lombok.Data;
+import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Data
 public class NotifyItem {
@@ -33,7 +39,7 @@ public class NotifyItem {
      * 添加三个基本的notify
      * change, live的警报阈值为70 ,capacity的警报阈值为70
      */
-    public static List<NotifyItem> getBaseNotifyItems() {
+    public static List<NotifyItem> getSimpleNotifyItems() {
         NotifyItem changeNotify = new NotifyItem();
         changeNotify.setType(NotifyItemEnum.CONFIG_CHANGE.getValue());
 
@@ -74,11 +80,40 @@ public class NotifyItem {
         queueTimeoutNotify.setThreshold(1);
 
         List<NotifyItem> notifyItems = new ArrayList<>(6);
-        notifyItems.addAll(getBaseNotifyItems());
+        notifyItems.addAll(getSimpleNotifyItems());
         notifyItems.add(rejectNotify);
         notifyItems.add(runTimeoutNotify);
         notifyItems.add(queueTimeoutNotify);
 
         return notifyItems;
+    }
+
+
+    public static List<NotifyItem> mergeAllNotifyItems(List<NotifyItem> source) {
+        // update notify items
+        if (CollectionUtils.isEmpty(source)) {
+            return getAllNotifyItems();
+        } else {
+            val configuredTypes = source.stream().map(NotifyItem::getType).collect(toList());
+            val defaultItems = getAllNotifyItems().stream()
+                    .filter(t -> !StringUtil.containsIgnoreCase(t.getType(), configuredTypes))
+                    .collect(Collectors.toList());
+            source.addAll(defaultItems);
+            return source;
+        }
+    }
+
+    public static List<NotifyItem> mergeSimpleNotifyItems(List<NotifyItem> source) {
+        // update notify items
+        if (CollectionUtils.isEmpty(source)) {
+            return getSimpleNotifyItems();
+        } else {
+            List<String> configuredTypes = source.stream().map(NotifyItem::getType).collect(toList());
+            List<NotifyItem> defaultItems = getSimpleNotifyItems().stream()
+                    .filter(t -> !StringUtil.containsIgnoreCase(t.getType(), configuredTypes))
+                    .collect(Collectors.toList());
+            source.addAll(defaultItems);
+            return source;
+        }
     }
 }

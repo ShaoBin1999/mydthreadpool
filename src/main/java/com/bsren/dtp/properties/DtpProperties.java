@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.bsren.dtp.em.CollectorTypeEnum.MICROMETER;
+
 @Slf4j
 @Data
 @Component
@@ -59,7 +61,7 @@ public class DtpProperties {
     /**
      * Metrics collector types, default is logging.
      */
-//    private List<String> collectorTypes = Lists.newArrayList(MICROMETER.name());
+    private List<String> collectorTypes = Lists.newArrayList(MICROMETER.name());
 
     /**
      * Metrics log storage path, just for "logging" type.

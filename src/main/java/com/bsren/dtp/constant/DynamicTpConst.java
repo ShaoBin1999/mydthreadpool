@@ -1,5 +1,13 @@
 package com.bsren.dtp.constant;
 
+import com.bsren.dtp.em.NotifyItemEnum;
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
+import static com.bsren.dtp.em.NotifyItemEnum.CAPACITY;
+import static com.bsren.dtp.em.NotifyItemEnum.LIVE;
+
 public final class DynamicTpConst {
 
     private DynamicTpConst() {
@@ -50,6 +58,8 @@ public final class DynamicTpConst {
     public static final String ARR_LEFT_BRACKET = "[";
 
     public static final String ARR_RIGHT_BRACKET = "]";
+
+    public static final List<NotifyItemEnum> SCHEDULE_NOTIFY_ITEMS = Lists.newArrayList(LIVE, CAPACITY);
 
     /**
      * unit

@@ -52,12 +52,12 @@ public class DtpExecutor extends DtpLifecycleSupport {
         return queueTimeout;
     }
 
-    public LongAdder getRunTimeoutCount() {
-        return runTimeoutCount;
+    public int getRunTimeoutCount() {
+        return runTimeoutCount.intValue();
     }
 
-    public LongAdder getQueueTimeoutCount() {
-        return queueTimeoutCount;
+    public int getQueueTimeoutCount() {
+        return queueTimeoutCount.intValue();
     }
 
     /**

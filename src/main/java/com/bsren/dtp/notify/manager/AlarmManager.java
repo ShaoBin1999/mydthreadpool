@@ -16,12 +16,15 @@ import com.bsren.dtp.notify.alarm.AlarmLimiter;
 import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.support.ThreadPoolBuilder;
 import com.bsren.dtp.thread.DtpExecutor;
+import com.bsren.dtp.util.StreamUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -147,5 +150,24 @@ public class AlarmManager {
     private static boolean checkWithAlarmInfo(ExecutorWrapper executorWrapper, NotifyItem notifyItem) {
         AlarmInfo alarmInfo = AlarmCounter.getAlarmInfo(executorWrapper.getThreadPoolName(), notifyItem.getType());
         return alarmInfo.getCount() >= notifyItem.getThreshold();
+    }
+
+    public static void refreshAlarm(String poolName,
+                                    List<NotifyPlatform> platforms,
+                                    List<NotifyItem> oldItems,
+                                    List<NotifyItem> newItems) {
+        if (CollectionUtils.isEmpty(newItems)) {
+            return;
+        }
+        NotifyItemManager.fillPlatforms(platforms, newItems);
+        Map<String, NotifyItem> oldNotifyItemMap = StreamUtil.toMap(oldItems, NotifyItem::getType);
+        newItems.forEach(x -> {
+            NotifyItem oldNotifyItem = oldNotifyItemMap.get(x.getType());
+            if (Objects.nonNull(oldNotifyItem) && oldNotifyItem.getInterval() == x.getInterval()) {
+                return;
+            }
+            AlarmLimiter.initAlarmLimiter(poolName, x);
+            AlarmCounter.init(poolName, x.getType());
+        });
     }
 }

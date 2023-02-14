@@ -2,6 +2,7 @@ package com.bsren.dtp.notify.dtpnotifier;
 
 
 import com.bsren.dtp.constant.DingNotifyConst;
+import com.bsren.dtp.em.NotifyItemEnum;
 import com.bsren.dtp.em.NotifyPlatformEnum;
 import com.bsren.dtp.notify.base.Notifier;
 import lombok.extern.slf4j.Slf4j;

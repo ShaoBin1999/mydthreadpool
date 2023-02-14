@@ -9,6 +9,9 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+/**
+ * 继承baseNotifyCtx, 包装了prop, diffs
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class NoticeNotifyCtx extends BaseNotifyCtx{

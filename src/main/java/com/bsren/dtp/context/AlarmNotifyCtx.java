@@ -4,6 +4,9 @@ import com.bsren.dtp.dto.ExecutorWrapper;
 import com.bsren.dtp.dto.NotifyItem;
 import com.bsren.dtp.dto.AlarmInfo;
 
+/**
+ * 继承baseNotifyCtx, 包装了alarmInfo
+ */
 public class AlarmNotifyCtx extends BaseNotifyCtx{
 
     private AlarmInfo alarmInfo;

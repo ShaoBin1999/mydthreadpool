@@ -15,6 +15,7 @@ import static com.bsren.dtp.em.NotifyItemEnum.REJECT;
 
 /**
  * 用threadPoolName和通知项名称作为key,指向一个alarmInfo
+ * 主要负责alarmInfo的计数
  */
 public class AlarmCounter {
 

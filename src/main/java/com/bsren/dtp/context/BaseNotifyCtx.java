@@ -9,6 +9,9 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 
+/**
+ * 包装了executorWrapper, platforms, notifyItem
+ */
 @Data
 public class BaseNotifyCtx {
 

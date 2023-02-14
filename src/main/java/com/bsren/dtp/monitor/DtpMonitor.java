@@ -1,6 +1,6 @@
 package com.bsren.dtp.monitor;
 
-import com.bsren.dtp.DtpRegistry;
+import com.bsren.dtp.registry.DtpRegistry;
 import com.bsren.dtp.convert.MetricsConverter;
 import com.bsren.dtp.dto.ExecutorWrapper;
 import com.bsren.dtp.dto.ThreadPoolStats;

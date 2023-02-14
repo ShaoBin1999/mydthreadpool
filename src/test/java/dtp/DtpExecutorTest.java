@@ -24,8 +24,8 @@ public class DtpExecutorTest {
                 new LinkedBlockingQueue<>(5),
                 new NamedThreadFactory("gaga",false));
         dtpExecutor.setThreadPoolName("dtp");
-        dtpExecutor.setQueueTimeout(500);
-        dtpExecutor.setRunTimeout(500);
+        dtpExecutor.setQueueTimeout(100);
+        dtpExecutor.setRunTimeout(100);
         for (int i=0;i<6;i++){
             dtpExecutor.execute(new DtpRunnable(new Runnable() {
                 @Override

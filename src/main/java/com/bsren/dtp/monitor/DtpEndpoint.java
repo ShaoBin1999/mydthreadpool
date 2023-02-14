@@ -2,7 +2,7 @@ package com.bsren.dtp.monitor;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.system.RuntimeInfo;
-import com.bsren.dtp.DtpRegistry;
+import com.bsren.dtp.registry.DtpRegistry;
 import com.bsren.dtp.convert.MetricsConverter;
 import com.bsren.dtp.dto.ExecutorWrapper;
 import com.bsren.dtp.dto.JvmStats;

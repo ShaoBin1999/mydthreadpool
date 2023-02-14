@@ -1,6 +1,7 @@
 package com.bsren.dtp.thread;
 
 import com.bsren.dtp.dto.NotifyItem;
+import com.bsren.dtp.notify.manager.AlarmManager;
 import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.reject.RejectHandlerGetter;
 import com.bsren.dtp.runnable.DtpRunnable;
@@ -13,6 +14,9 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+
+import static com.bsren.dtp.em.NotifyItemEnum.QUEUE_TIMEOUT;
+import static com.bsren.dtp.em.NotifyItemEnum.RUN_TIMEOUT;
 
 @Slf4j
 public class DtpExecutor extends DtpLifecycleSupport {
@@ -180,8 +184,12 @@ public class DtpExecutor extends DtpLifecycleSupport {
     }
 
     @Override
-    protected void initialize(DtpProperties properties) {
+    protected void initialize(DtpProperties dtpProperties) {
+        AlarmManager.initAlarm(this, dtpProperties.getPlatforms());
 
+        if (preStartAllCoreThreads) {
+            prestartAllCoreThreads();
+        }
     }
 
 
@@ -201,6 +209,8 @@ public class DtpExecutor extends DtpLifecycleSupport {
             if(waitTime>queueTimeout){
                 queueTimeoutCount.increment();
                 //TODO 触发警报
+                Runnable alarmTask = () -> AlarmManager.doAlarm(this, QUEUE_TIMEOUT);
+                AlarmManager.triggerAlarm(this.getThreadPoolName(), QUEUE_TIMEOUT.getValue(), alarmTask);
                 log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+waitTime+"ms");
             }
@@ -216,6 +226,8 @@ public class DtpExecutor extends DtpLifecycleSupport {
             if(runTime>runTimeout){
                 runTimeoutCount.increment();
                 //TODO 触发警报
+                Runnable alarmTask = () -> AlarmManager.doAlarm(this, RUN_TIMEOUT);
+                AlarmManager.triggerAlarm(this.getThreadPoolName(), RUN_TIMEOUT.getValue(), alarmTask);
                 log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+runTime+"ms");
             }

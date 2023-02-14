@@ -1,6 +1,6 @@
 package com.bsren.dtp.refresh;
 
-import com.bsren.dtp.DtpRegistry;
+import com.bsren.dtp.registry.DtpRegistry;
 import com.bsren.dtp.em.ConfigFileTypeEnum;
 import com.bsren.dtp.event.RefreshEvent;
 import com.bsren.dtp.handler.ConfigHandler;
@@ -8,7 +8,6 @@ import com.bsren.dtp.holder.ApplicationContextHolder;
 import com.bsren.dtp.properties.DtpProperties;
 import com.bsren.dtp.support.PropertiesBinder;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 

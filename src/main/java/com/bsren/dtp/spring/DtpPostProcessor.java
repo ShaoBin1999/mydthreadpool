@@ -1,6 +1,6 @@
 package com.bsren.dtp.spring;
 
-import com.bsren.dtp.DtpRegistry;
+import com.bsren.dtp.registry.DtpRegistry;
 import com.bsren.dtp.dto.ExecutorWrapper;
 import com.bsren.dtp.holder.ApplicationContextHolder;
 import com.bsren.dtp.queue.TaskQueue;

@@ -2,10 +2,17 @@ package com.bsren.dtp.notify.alarm;
 
 import com.bsren.dtp.dto.AlarmInfo;
 import com.bsren.dtp.em.NotifyItemEnum;
+import com.bsren.dtp.thread.DtpExecutor;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import static com.bsren.dtp.constant.DynamicTpConst.UNKNOWN;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.bsren.dtp.constant.DynamicTpConst.*;
+import static com.bsren.dtp.em.NotifyItemEnum.REJECT;
+
 /**
  * 用threadPoolName和通知项名称作为key,指向一个alarmInfo
  */
@@ -49,5 +56,20 @@ public class AlarmCounter {
 
     private static String buildKey(String threadPoolName, String notifyItemType) {
         return threadPoolName + ":" + notifyItemType;
+    }
+
+    public static Triple<String, String, String> countStrRrq(String threadPoolName, ThreadPoolExecutor executor) {
+
+        if (!(executor instanceof DtpExecutor)) {
+            return new ImmutableTriple<>(DEFAULT_COUNT_STR, DEFAULT_COUNT_STR, DEFAULT_COUNT_STR);
+        }
+
+        DtpExecutor dtpExecutor = (DtpExecutor) executor;
+        String rejectCount = getCount(threadPoolName, REJECT.getValue()) + " / " + dtpExecutor.getRejectCount();
+        String runTimeoutCount = getCount(threadPoolName, NotifyItemEnum.RUN_TIMEOUT.getValue()) + " / "
+                + dtpExecutor.getRunTimeoutCount();
+        String queueTimeoutCount = getCount(threadPoolName, NotifyItemEnum.QUEUE_TIMEOUT.getValue()) + " / "
+                + dtpExecutor.getQueueTimeoutCount();
+        return new ImmutableTriple<>(rejectCount, runTimeoutCount, queueTimeoutCount);
     }
 }

@@ -11,7 +11,7 @@ public interface DtpNotifier {
 
     String platform();
 
-    void sendChangeMsg(BaseNotifyCtx ctx,DtpMainProp oldProp, DtpMainProp newProp);
+    void sendChangeMsg(DtpMainProp oldProp, List<String> diffs);
 
-    void sendAlarmMsg(BaseNotifyCtx ctx,NotifyItem notifyItem);
+    void sendAlarmMsg(NotifyItemEnum notifyItemEnum);
 }

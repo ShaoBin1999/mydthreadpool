@@ -18,17 +18,9 @@ public abstract class AbstractDtpNotifier implements DtpNotifier{
         this.notifier = notifier;
     }
 
-    @Override
-    public void sendChangeMsg(BaseNotifyCtx ctx,DtpMainProp oldProp, DtpMainProp newProp) {
-    }
 
     private String buildNoticeMsg(BaseNotifyCtx ctx, DtpMainProp oldProp, DtpMainProp newProp) {
         return null;
-    }
-
-    @Override
-    public void sendAlarmMsg(BaseNotifyCtx ctx,NotifyItem notifyItem) {
-
     }
 
     @Override

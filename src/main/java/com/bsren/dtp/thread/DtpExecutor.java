@@ -86,37 +86,6 @@ public class DtpExecutor extends DtpLifecycleSupport {
      */
     private final LongAdder rejectCount = new LongAdder();
 
-
-    private int runTimeoutThreshold = 1;
-
-    private int queueTimeoutThreshold = 1;
-
-    private int rejectThreshold = 1;
-
-    public int getQueueTimeoutThreshold() {
-        return queueTimeoutThreshold;
-    }
-
-    public void setQueueTimeoutThreshold(int queueTimeoutThreshold) {
-        this.queueTimeoutThreshold = queueTimeoutThreshold;
-    }
-
-    public int getRunTimeoutThreshold() {
-        return runTimeoutThreshold;
-    }
-
-    public void setRunTimeoutThreshold(int runTimeoutThreshold) {
-        this.runTimeoutThreshold = runTimeoutThreshold;
-    }
-
-    public int getRejectThreshold() {
-        return rejectThreshold;
-    }
-
-    public void setRejectThreshold(int rejectThreshold) {
-        this.rejectThreshold = rejectThreshold;
-    }
-
     public void setRunTimeout(long runTimeout) {
         this.runTimeout = runTimeout;
     }
@@ -231,11 +200,7 @@ public class DtpExecutor extends DtpLifecycleSupport {
             long waitTime = curTime-runnable.getSubmitTime();
             if(waitTime>queueTimeout){
                 queueTimeoutCount.increment();
-                //TODO 按照一种策略，目前是超过就报警，重新计数
-                if(queueTimeoutCount.intValue()>queueTimeoutThreshold){
-                    //TODO 触发警报
-                    queueTimeoutCount.reset();
-                }
+                //TODO 触发警报
                 log.warn("task "+runnable.getName()+" wait timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+waitTime+"ms");
             }
@@ -250,10 +215,7 @@ public class DtpExecutor extends DtpLifecycleSupport {
             long runTime = System.currentTimeMillis()-runnable.getStartTime();
             if(runTime>runTimeout){
                 runTimeoutCount.increment();
-                if(runTimeoutCount.intValue()>runTimeoutThreshold){
-                    //TODO 触发警报
-                    runTimeoutCount.reset();
-                }
+                //TODO 触发警报
                 log.warn("task "+runnable.getName()+" execute timeout"+""+" in executor "+this.getThreadPoolName()+
                         ",timeout "+runTime+"ms");
             }
